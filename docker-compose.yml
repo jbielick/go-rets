@@ -1,0 +1,13 @@
+version: '2'
+services:
+  db:
+    image: rethinkdb:2.3
+    volumes_from:
+      - data
+    ports:
+      - '8080:8080'
+      - '28015:28015'
+  data:
+    image: busybox
+    volumes:
+      - /data
