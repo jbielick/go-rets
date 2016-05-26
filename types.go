@@ -1,5 +1,25 @@
 package main
 
+import (
+	"time"
+	"encoding/xml"
+)
+
+type customTime struct {
+	time.Time
+}
+
+func (c *customTime) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	var v string
+	d.DecodeElement(&v, &start)
+	parsed, err := time.Parse(time.RFC3339, v)
+	if err != nil {
+		return err
+	}
+	*c = customTime{parsed}
+	return nil
+}
+
 type PriceWithOptionalFrequency struct {
 	Value          string `xml:",chardata"`
 	CurrencyPeriod string `xml:"currencyPeriod,attr"`

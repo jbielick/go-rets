@@ -1,3 +1,6 @@
+// Total Listings: 1751590
+// go run types.go main.go  5992.19s user 517.07s system 226% cpu 47:50.42 total
+
 package main
 
 import (
@@ -7,7 +10,7 @@ import (
 	"fmt"
 	r "gopkg.in/dancannon/gorethink.v2"
 	"log"
-	"os"
+	"net/http"
 	"time"
 )
 
@@ -28,29 +31,14 @@ func schedule(what func(), delay time.Duration) chan bool {
 	return stop
 }
 
-var inputFile = flag.String("infile", "adwerx.xml.gz", "Input file path")
-
-type customTime struct {
-	time.Time
-}
-
-func (c *customTime) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	var v string
-	d.DecodeElement(&v, &start)
-	parsed, err := time.Parse(time.RFC3339, v)
-	if err != nil {
-		return err
-	}
-	*c = customTime{parsed}
-	return nil
-}
-
 func main() {
-	flag.Parse()
-
 	r.SetTags("gorethink", "json")
 
-	var session *r.Session
+	pickupUrl := flag.String("url", "", "the pickup url for the gzipped xml file")
+	user := flag.String("user", "", "the basic auth user")
+	pass := flag.String("pass", "", "the basic auth password")
+
+	flag.Parse()
 
 	session, err := r.Connect(r.ConnectOpts{
 		Address:  "localhost:28015",
@@ -61,18 +49,24 @@ func main() {
 		log.Fatalln(err.Error())
 	}
 
-	archive, err := os.Open(*inputFile)
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", *pickupUrl, nil)
+
+	req.SetBasicAuth(*user, *pass)
+
+	resp, err := client.Do(req)
+	defer resp.Body.Close()
 
 	if err != nil {
-		fmt.Println("Error opening file:", err)
+		fmt.Println("Error opening connection:", err)
 		return
 	}
-	defer archive.Close()
 
-	xmlFile, gerr := gzip.NewReader(archive)
+	xmlFile, gerr := gzip.NewReader(resp.Body)
 
 	if gerr != nil {
 		log.Fatalln(gerr.Error())
+		return
 	}
 
 	decoder := xml.NewDecoder(xmlFile)
@@ -80,11 +74,11 @@ func main() {
 	total := 0
 	runner := 0
 
-	logCount := func() { fmt.Println("per second: ", runner); runner = 0 }
+	logCount := func() { fmt.Printf("per second: %v, total: %v \n", runner, total); runner = 0 }
 
 	stop := schedule(logCount, time.Second)
 
-	concurrency := 10
+	concurrency := 100
 	sem := make(chan bool, concurrency)
 
 	var inElement string
