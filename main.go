@@ -62,14 +62,14 @@ func main() {
 		return
 	}
 
-	xmlFile, gerr := gzip.NewReader(resp.Body)
+	xmlStream, gerr := gzip.NewReader(resp.Body)
 
 	if gerr != nil {
 		log.Fatalln(gerr.Error())
 		return
 	}
 
-	decoder := xml.NewDecoder(xmlFile)
+	decoder := xml.NewDecoder(xmlStream)
 
 	total := 0
 	runner := 0
@@ -81,8 +81,6 @@ func main() {
 	concurrency := 100
 	sem := make(chan bool, concurrency)
 
-	var inElement string
-
 	for {
 		// Read tokens from the XML document in a stream.
 		t, _ := decoder.Token()
@@ -93,9 +91,8 @@ func main() {
 		switch se := t.(type) {
 		case xml.StartElement:
 			// If we just read a StartElement token
-			inElement = se.Name.Local
 			// ...and its name is "Listing"
-			if inElement == "Listing" {
+			if se.Name.Local == "Listing" {
 				var l Listing
 
 				err := decoder.DecodeElement(&l, &se)
