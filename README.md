@@ -1,13 +1,17 @@
 # go-rets
 RETS import processor written in Go for RethinkDB
 
+Maps RETS schema to structs with xml and json tags. Entire resulting listing document is inserted into rethinkdb as json, where `logstash-input-rethinkdb` binds to the table's changefeed events and sends documents to elasticsearch via logstash. The custom logstash configuration is in `logstash/config/logstash.conf`. Only a few fields are imported into elasticsearch for indexing. Kibana and Elastic HQ are running for ES administration and visualization.
+
+### Setup
+
+`docker-compose up rethinkdb`
+
+Create a database `realestate` and a table `listings` in rethinkdb before beginning.
+
 `docker-compose up`
 
-will bring up Elasticsearch, Kibana, Logstash, RethinkDB
-
-`logstash-input-rethinkdb` binds changefeeds to logstash event input for rethinkdb to send documents to elasticsearch.
-
-The custom logstash configuration is in `logstash/config/logstash.conf`
+Runs Elasticsearch, Kibana, Logstash, RethinkDB
 
 Kick off the import with:
 
