@@ -1,13 +1,37 @@
 version: '2'
 services:
-  db:
+  rethinkdb:
     image: rethinkdb:2.3
     volumes_from:
-      - data
+      - rethinkdata
     ports:
       - '8080:8080'
       - '28015:28015'
-  data:
+  rethinkdata:
     image: busybox
     volumes:
-      - /data
+      - ./rethinkdb:/data
+  elasticsearch:
+    build: ./elasticsearch
+    command: elasticsearch -Des.network.host=0.0.0.0
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+  logstash:
+    build: ./logstash
+    command: logstash -f /etc/logstash/conf.d/logstash.conf
+    volumes:
+      - ./logstash/config:/etc/logstash/conf.d
+    ports:
+      - "5000:5000"
+    links:
+      - rethinkdb
+      - elasticsearch
+  kibana:
+    build: kibana/
+    volumes:
+      - ./kibana/config/:/opt/kibana/config/
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch

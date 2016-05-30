@@ -1,0 +1,14 @@
+{
+  "template" : "listings",
+  "settings" : {},
+  "mappings" : {
+    "_default_" : {
+      "_all" : {"enabled" : true},
+      "properties" : {
+         "Address": {
+           "type" : "object"
+         }
+      }
+    }
+  }
+}
