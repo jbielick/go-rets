@@ -16,3 +16,11 @@ Runs Elasticsearch, Kibana, Logstash, RethinkDB
 Kick off the import with:
 
 `go run import.go types.go -url=https://retsfeeds.example/xxxxxx.xml.gz -user=XXXXX -pass=XXXXXX`
+
+Many thanks to the fine folks who contributed and shared in these links for help with figuring a lot of this out:
+
+https://github.com/rethinkdb/logstash-input-rethinkdb
+https://github.com/BenMann/cookiejar/commit/0bafcf406bfe25a5f986544d73be236a9a21511f
+https://www.bountysource.com/issues/28139325-update-full-text-search-documentation-to-use-logstash
+http://jmoiron.net/blog/limiting-concurrency-in-go/
+https://www.elastic.co/guide/en/logstash/current/plugins-filters-mutate.html#plugins-filters-mutate-replace
